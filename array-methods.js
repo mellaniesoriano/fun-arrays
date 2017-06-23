@@ -29,8 +29,11 @@ var hundredThousandairs = dataset.bankBalances
   assign the resulting new array to `datasetWithRoundedDollar`
 */
 var datasetWithRoundedDollar = dataset.bankBalances.map( (account) => {
-  return {"rounded" : Math.round(account.amount)};
-} );
+  return {
+    'amount' : account.amount,
+    'rounded' : Math.round(account.amount)
+  };
+});
 
 /*
   DO NOT MUTATE DATA.
@@ -55,7 +58,13 @@ var datasetWithRoundedDollar = dataset.bankBalances.map( (account) => {
     }
   assign the resulting new array to `roundedDime`
 */
-var datasetWithRoundedDime = null;
+var datasetWithRoundedDime = dataset.bankBalances.map( (account) => {
+  console.log(Math.round(account.amount * 10) / 10);
+  return {
+    'amount' : account.amount,
+    'roundedDime' : Math.round(account.amount * 10) / 10
+  };
+});
 
 // set sumOfBankBalances to be the sum of all value held at `amount` for each bank object
 var sumOfBankBalances = null;
