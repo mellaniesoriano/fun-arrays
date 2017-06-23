@@ -1,3 +1,4 @@
+/* jshint esversion: 6 */
 var dataset = require('./dataset.json');
 
 /*
@@ -5,7 +6,10 @@ var dataset = require('./dataset.json');
   greater than 100000
   assign the resulting new array to `hundredThousandairs`
 */
-var hundredThousandairs = null;
+var hundredThousandairs = dataset.bankBalances
+.filter ( (account) => {
+  return account.amount > 100000;
+});
 
 /*
   DO NOT MUTATE DATA.
