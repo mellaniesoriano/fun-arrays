@@ -66,9 +66,11 @@ var datasetWithRoundedDime = dataset.bankBalances.map( (account) => {
 });
 
 // set sumOfBankBalances to be the sum of all value held at `amount` for each bank object
-var sumOfBankBalances = dataset.bankBalances.reduce( (bankTotals, currentNum) => {
+function roundToNearestCent(bankTotals, currentNum) {
   return Math.round((bankTotals += parseFloat(currentNum.amount)) * 100) / 100;
-},0);
+}
+
+var sumOfBankBalances = dataset.bankBalances.reduce( roundToNearestCent, 0);
 
 /*
   from each of the following states:
@@ -81,6 +83,10 @@ var sumOfBankBalances = dataset.bankBalances.reduce( (bankTotals, currentNum) =>
   take each `amount` and add 18.9% interest to it rounded to the nearest cent
   and then sum it all up into one value saved to `sumOfInterests`
  */
+
+ // function excludeTheseStates(nonStates) {
+ //  return ['WI', 'IL', 'WY', 'OH', 'GA', 'DE'].indexOf(chosenStates.state) !== -1;
+ // }
 
 
 var sumOfInterests = dataset.bankBalances
@@ -107,27 +113,24 @@ var sumOfInterests = dataset.bankBalances
     round this number to the nearest 10th of a cent before moving on.
   )
  */
-var stateSums = dataset.bankBalances.reduce( (eachStatesTotal, currentState) => {
-  if ( !eachStatesTotal.hasOwnProperty(currentState.state) ) {
-    eachStatesTotal[currentState.state] = 0;
+var stateSums = dataset.bankBalances.reduce( (statesTotal, currentState) => {
+  if ( !statesTotal.hasOwnProperty(currentState.state) ) {
+    statesTotal[currentState.state] = 0;
   }
-  eachStatesTotal[currentState.state] += parseFloat(currentState.amount);
-  eachStatesTotal[currentState.state] = Math.round(eachStatesTotal[currentState.state] * 100) / 100;
-  return eachStatesTotal;
+  statesTotal[currentState.state] += parseFloat(currentState.amount);
+  statesTotal[currentState.state] = Math.round(statesTotal[currentState.state] * 100) / 100;
+  return statesTotal;
 },{});
 
-
-
 /*
-  from each of the following states:
+  Excluding the following states:
     Wisconsin
     Illinois
     Wyoming
     Ohio
     Georgia
     Delaware
-  take each `amount` and add 18.9% interest to it
-  only sum values greater than 50,000 and save it to `sumOfInterests`
+  take the `amount` of all other states and add 18.9% interest to it. Only sum values greater than 50,000 and save it to `sumOfHIghInterests`
 
   note: During your summation (
     if at any point durig your calculation where the number looks like `2486552.9779399997`
@@ -135,26 +138,34 @@ var stateSums = dataset.bankBalances.reduce( (eachStatesTotal, currentState) => 
   )
  */
 
- var sumOfHighInterests = null;
-
-// .map( (tax) => {
-//   return {
-//     tax : Math.round(parseFloat(tax.amount) * 18.9) / 100
-//   };
-// })
-//   .filter( (ovr50k) => {
-//     return ovr50k.taxes > 50000;
-//   })
-//   .reduce( (taxTotals, currentStateAmount) => {
-//   return Math.round( (taxTotals + parseFloat(currentStateAmount.tax) ) * 100 ) / 100;
-// },0);
-// console.log('total..', sumOfHighInterests);
+ var sumOfHighInterests = Object.keys(stateSums).filter( (state) => {
+  return ['WI', 'IL', 'WY', 'OH', 'GA', 'DE'].indexOf(state) === -1;
+})
+.map( (state) => {
+  return {
+    state : state,
+    combinedAmount : stateSums[state]
+  };
+})
+.map( (account) => {
+  return {
+    interest : account.combinedAmount * 18.9 / 100
+  };
+})
+.filter( (account) => {
+  return account.interest > 50000;
+})
+.reduce( (prevInterest, currTotal) => {
+  sum = prevInterest + currTotal.interest;
+  return Math.round(sum * 100) / 100;
+}, 0);
 
 /*
   set `lowerSumStates` to be an array of two letter state
   abbreviations of each state where the sum of amounts
   in the state is less than 1,000,000
  */
+
 var lowerSumStates = Object.keys(stateSums).filter( (state) => {
   return stateSums[state] < 1000000;
 } );
@@ -163,7 +174,20 @@ var lowerSumStates = Object.keys(stateSums).filter( (state) => {
   aggregate the sum of each state into one hash table
   `higherStateSums` should be the sum of all states with totals greater than 1,000,000
  */
-var higherStateSums = null;
+var higherStateSums = Object.keys(stateSums).filter( (state) => {
+  return stateSums[state] > 1000000;
+})
+.map( (state) => {
+  return {
+    state : state,
+    combinedAmount : stateSums[state]
+  };
+})
+.reduce( (combinedTotal, nextTotalToBeAddedTo) => {
+  sum = combinedTotal + nextTotalToBeAddedTo.combinedAmount;
+  return sum;
+},0);
+
 
 /*
   from each of the following states:
@@ -180,7 +204,18 @@ var higherStateSums = null;
   if true set `areStatesInHigherStateSum` to `true`
   otherwise set it to `false`
  */
-var areStatesInHigherStateSum = null;
+var areStatesInHigherStateSum = Object.keys(stateSums).filter( (state) => {
+  return ['WI', 'IL', 'WY', 'OH', 'GA', 'DE'].indexOf(state) !== -1;
+})
+.map(  (state) => {
+  return {
+    state : state,
+    combinedAmount : stateSums[state]
+  };
+})
+.every( (account) => {
+  return account > 2550000;
+});
 
 /*
   Stretch Goal && Final Boss
@@ -196,7 +231,18 @@ var areStatesInHigherStateSum = null;
   have a sum of account values greater than 2,550,000
   otherwise set it to be `false`
  */
-var anyStatesInHigherStateSum = null;
+var anyStatesInHigherStateSum = Object.keys(stateSums).filter( (state) => {
+  return ['WI', 'IL', 'WY', 'OH', 'GA', 'DE'].indexOf(state) !== -1;
+})
+.map(  (state) => {
+  return {
+    state : state,
+    combinedAmount : stateSums[state]
+  };
+})
+.some( (account) => {
+  return account.combinedAmount > 2550000;
+});
 
 
 module.exports = {
