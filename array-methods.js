@@ -81,7 +81,13 @@ var sumOfBankBalances = dataset.bankBalances.reduce( (bankTotals, currentNum) =>
   take each `amount` and add 18.9% interest to it rounded to the nearest cent
   and then sum it all up into one value saved to `sumOfInterests`
  */
-var sumOfInterests = null;
+var sumOfInterests = dataset.bankBalances
+.filter( (chosenStates) => {
+  return ['WI', 'IL', 'WY', 'OH', 'GA', 'DE'].indexOf(chosenStates.state) !== -1;
+})
+.reduce( (taxTotals, currentStateAmount) => {
+  return Math.round((taxTotals + Math.round(currentStateAmount.amount * 0.189 * 100)/100) * 100)/100;
+},0);
 
 /*
   aggregate the sum of bankBalance amounts
@@ -99,7 +105,16 @@ var sumOfInterests = null;
     round this number to the nearest 10th of a cent before moving on.
   )
  */
-var stateSums = null;
+var stateSums = dataset.bankBalances.reduce( (eachStatesTotal, currentState) => {
+  if ( !eachStatesTotal.hasOwnProperty(currentState.state) ) {
+    eachStatesTotal[currentState.state] = 0;
+  }
+  eachStatesTotal[currentState.state] += parseFloat(currentState.amount);
+  eachStatesTotal[currentState.state] = Math.round(eachStatesTotal[currentState.state] * 100) / 100;
+  return eachStatesTotal;
+},{});
+
+
 
 /*
   from each of the following states:
